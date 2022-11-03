@@ -8,7 +8,7 @@ import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
 import model.log_melspec as module_melspec
-from trainer import Trainer
+from trainer import GenericDistillationTrainer
 from utils import prepare_device, perfomance_estimate
 from utils.parse_config import ConfigParser
 
@@ -40,8 +40,8 @@ def main(config):
     
     # log compression & speed up rate
     logger.info(perfomance_estimate(
-        copy.deepcopy(model),  # to avoid extra keys in state_dict
-        val_melspec(torch.randn(config["dataloader"]["args"]["batch_size"], 2 * config["melspec"]["args"]["sample_rate"])).cpu(),  # 2 sec audio for MACs estimate
+        copy.deepcopy(model), 
+        val_melspec(torch.randn(config["dataloader"]["args"]["batch_size"], 2 * config["melspec"]["args"]["sample_rate"])),  # 2 sec audio for MACs estimate
         config.get("baseline_macs"),
         config.get("baseline_mb")
     ))
@@ -50,8 +50,19 @@ def main(config):
     if len(device_ids) > 1:
         model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+    # load teacher model
+    teacher = config.init_obj('teacher', module_arch)
+    logger.info('Loading teacher: {} ...'.format(config["teacher"]["checkpoint"]))
+    checkpoint = torch.load(config["teacher"]["checkpoint"])
+    state_dict = checkpoint['state_dict']
+    if config['n_gpu'] > 1:
+        teacher = torch.nn.DataParallel(model)
+    teacher.load_state_dict(state_dict)
+    teacher = teacher.to(device)
+
     # get function handles of loss and metrics
     criterion = config.init_obj('loss', module_loss)
+    teacher_loss = config.init_obj('teacher_loss', module_loss)
     metrics = [getattr(module_metric, met) for met in config['metrics']]
 
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
@@ -59,12 +70,21 @@ def main(config):
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer) if config.get("lr_scheduler") else None
 
-    trainer = Trainer(model, train_melspec, val_melspec, criterion, metrics, optimizer,
-                      config=config,
-                      device=device,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+    trainer = GenericDistillationTrainer(
+        model=model,
+        teacher=teacher,
+        teacher_loss=teacher_loss, 
+        train_melspec=train_melspec, 
+        val_melspec=val_melspec, 
+        criterion=criterion, 
+        metrics=metrics, 
+        optimizer=optimizer,
+        config=config,
+        device=device,
+        data_loader=data_loader,
+        valid_data_loader=valid_data_loader,
+        lr_scheduler=lr_scheduler
+    )
 
     trainer.train()
 

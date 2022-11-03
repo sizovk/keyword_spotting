@@ -1,0 +1,87 @@
+{
+    "name": "baseline",
+    "n_gpu": 1,
+    "arch": {
+        "type": "CRNN",
+        "args": {
+            "cnn_out_channels": 8,
+            "kernel_size": [5, 20],
+            "stride": [2, 8],
+            "n_mels": 40,
+            "gru_num_layers": 2,
+            "bidirectional": false,
+            "hidden_size": 32,
+            "num_classes": 2
+        }
+    },
+    "teacher": {
+        "type": "CRNN",
+        "args": {
+            "cnn_out_channels": 8,
+            "kernel_size": [5, 20],
+            "stride": [2, 8],
+            "n_mels": 40,
+            "gru_num_layers": 2,
+            "bidirectional": false,
+            "hidden_size": 32,
+            "num_classes": 2
+        },
+        "checkpoint": "saved/models/baseline/1103_213350/checkpoint-epoch10.pth"
+    },
+    "train_dataset": {
+        "type": "SpeechCommandDataset",
+        "args": {
+            "is_train": true,
+            "df_path": "speech_commands/train_df.csv"
+        }
+    },
+    "val_dataset": {
+        "type": "SpeechCommandDataset",
+        "args": {
+            "is_train": false,
+            "df_path": "speech_commands/val_df.csv"
+        }
+    },
+    "dataloader": {
+        "type": "SpeechCommandDataloader",
+        "args": {
+            "batch_size": 128,
+            "num_workers": 4
+        }
+    },
+    "melspec": {
+        "type": "LogMelspec",
+        "args": {
+            "sample_rate": 16000,
+            "n_mels": 40
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args":{
+            "lr": 3e-4,
+            "weight_decay": 1e-5
+        }
+    },
+    "loss": {
+        "type": "CrossEntropyLoss",
+        "args": {}
+    },
+    "teacher_loss": {
+        "type": "MSELoss",
+        "args": {}
+    },
+    "metrics": ["au_fa_fr"],
+    "lr_scheduler": null,
+    "trainer": {
+        "epochs": 20,
+        "save_dir": "saved/",
+        "save_period": 5,
+        "verbosity": 2,
+        "log_step": 50,
+        "visualize": "wandb",
+        "wandb_project": "keyword_spotting"
+    },
+    "baseline_macs": 115789824.0,
+    "baseline_mb": 0.10348224639892578
+}
