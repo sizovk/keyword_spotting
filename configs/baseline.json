@@ -10,7 +10,7 @@
             "n_mels": 40,
             "gru_num_layers": 2,
             "bidirectional": false,
-            "hidden_size": 64,
+            "hidden_size": 32,
             "num_classes": 2
         }
     },
@@ -63,5 +63,7 @@
         "log_step": 50,
         "visualize": "wandb",
         "wandb_project": "keyword_spotting"
-    }
+    },
+    "baseline_macs": 115789824.0,
+    "baseline_mb": 0.10348224639892578
 }

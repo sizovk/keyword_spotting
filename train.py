@@ -8,7 +8,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import model.log_melspec as module_melspec
 from trainer import Trainer
-from utils import prepare_device
+from utils import prepare_device, perfomance_estimate
 from utils.parse_config import ConfigParser
 
 
@@ -36,6 +36,14 @@ def main(config):
     device, device_ids = prepare_device(config['n_gpu'])
     train_melspec = config.init_obj('melspec', module_melspec, is_train=True, device=device)
     val_melspec = config.init_obj('melspec', module_melspec, is_train=False, device=device)
+    
+    # log compression & speed up rate
+    logger.info(perfomance_estimate(
+        model, 
+        val_melspec(torch.randn(config["dataloader"]["args"]["batch_size"], 2 * config["melspec"]["args"]["sample_rate"])),  # 2 sec audio for MACs estimate
+        config.get("baseline_macs"),
+        config.get("baseline_mb")
+    ))
 
     model = model.to(device)
     if len(device_ids) > 1:
@@ -48,7 +56,7 @@ def main(config):
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
-    lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer) if config["lr_scheduler"] else None
+    lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer) if config.get("lr_scheduler") else None
 
     trainer = Trainer(model, train_melspec, val_melspec, criterion, metrics, optimizer,
                       config=config,
