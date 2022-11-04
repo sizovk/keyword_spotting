@@ -8,7 +8,7 @@ import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
 import model.log_melspec as module_melspec
-from trainer import GenericDistillationTrainer
+from trainer import DarkKnowledgeDistillationTrainer
 from utils import prepare_device, perfomance_estimate
 from utils.parse_config import ConfigParser
 
@@ -70,10 +70,12 @@ def main(config):
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer) if config.get("lr_scheduler") else None
 
-    trainer = GenericDistillationTrainer(
+    trainer = DarkKnowledgeDistillationTrainer(
         model=model,
         teacher=teacher,
         teacher_loss=teacher_loss, 
+        dist_coef=config["trainer"]["dist_coef"],
+        temperature=config["trainer"]["temperature"],
         train_melspec=train_melspec, 
         val_melspec=val_melspec, 
         criterion=criterion, 

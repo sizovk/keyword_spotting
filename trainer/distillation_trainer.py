@@ -1,10 +1,13 @@
+import torch.nn.functional as F
 from .trainer import Trainer
 
-class GenericDistillationTrainer(Trainer):
+class DarkKnowledgeDistillationTrainer(Trainer):
 
-    def __init__(self, teacher, teacher_loss, **kwargs):
+    def __init__(self, teacher, teacher_loss, dist_coef, temperature, **kwargs):
         self.teacher = teacher
         self.teacher_loss = teacher_loss
+        self.dist_coef = dist_coef
+        self.temperature = temperature
         super().__init__(**kwargs)
 
     def _train_epoch(self, epoch):
@@ -18,7 +21,11 @@ class GenericDistillationTrainer(Trainer):
             self.optimizer.zero_grad()
             output = self.model(data)
             teacher_output = self.teacher(data)
-            loss = self.teacher_loss(output, teacher_output)
+            log_model_probs = F.log_softmax(output / self.temperature, dim=-1)
+            teacher_probs = F.softmax(teacher_output / self.temperature, dim=-1)
+            student_loss = self.criterion(output, target)
+            distillation_loss = self.teacher_loss(log_model_probs, teacher_probs)
+            loss = self.dist_coef * distillation_loss + (1 - self.dist_coef) * student_loss
             loss.backward()
             self.optimizer.step()
 

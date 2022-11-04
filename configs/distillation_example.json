@@ -68,12 +68,14 @@
         "args": {}
     },
     "teacher_loss": {
-        "type": "MSELoss",
+        "type": "KLDivLoss",
         "args": {}
     },
     "metrics": ["au_fa_fr"],
     "lr_scheduler": null,
     "trainer": {
+        "dist_coef": 0.95,
+        "temperature": 10,
         "epochs": 20,
         "save_dir": "saved/",
         "save_period": 5,
