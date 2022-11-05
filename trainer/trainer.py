@@ -99,8 +99,6 @@ class Trainer(BaseTrainer):
                 loss = self.criterion(output, target)
 
                 self.valid_metrics.update('loss', loss.item())
-                for met in self.metrics:
-                    self.valid_metrics.update(met.__name__, met(output, target))
         outputs = torch.cat(outputs, dim=0)
         labels = torch.cat(labels, dim=0)
         for met in self.metrics:

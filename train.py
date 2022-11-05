@@ -41,7 +41,7 @@ def main(config):
     # log compression & speed up rate
     logger.info(perfomance_estimate(
         copy.deepcopy(model),  # to avoid extra keys in state_dict
-        val_melspec(torch.randn(config["dataloader"]["args"]["batch_size"], 2 * config["melspec"]["args"]["sample_rate"])).cpu(),  # 2 sec audio for MACs estimate
+        val_melspec(torch.randn(config["dataloader"]["args"]["batch_size"], 2 * config["melspec"]["args"]["sample_rate"]).to(device)).cpu(),  # 2 sec audio for MACs estimate
         config.get("baseline_macs"),
         config.get("baseline_mb")
     ))

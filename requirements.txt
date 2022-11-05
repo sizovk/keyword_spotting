@@ -4,5 +4,6 @@ tqdm
 pandas
 wandb
 
+thop
 torchaudio
 
