@@ -27,3 +27,9 @@ python distillation_train.py -c configs/morning.json
 python distillation_train.py -c configs/day.json 
 python distillation_train.py -c configs/evening.json
 ```
+
+### Streaming
+To run pretrained model `stream_model.pth` (in TorchScript), use
+```bash
+python stream.py
+```
