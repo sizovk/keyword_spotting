@@ -1,7 +1,20 @@
 {
-    "name": "baseline",
+    "name": "day",
     "n_gpu": 1,
     "arch": {
+        "type": "CRNN",
+        "args": {
+            "cnn_out_channels": 3,
+            "kernel_size": [5, 20],
+            "stride": [4, 8],
+            "n_mels": 40,
+            "gru_num_layers": 2,
+            "bidirectional": false,
+            "hidden_size": 16,
+            "num_classes": 2
+        }
+    },
+    "teacher": {
         "type": "CRNN",
         "args": {
             "cnn_out_channels": 8,
@@ -12,7 +25,8 @@
             "bidirectional": false,
             "hidden_size": 32,
             "num_classes": 2
-        }
+        },
+        "checkpoint": "saved/models/baseline/1105_200812/checkpoint-epoch100.pth"
     },
     "train_dataset": {
         "type": "SpeechCommandDataset",
@@ -53,10 +67,18 @@
         "type": "CrossEntropyLoss",
         "args": {}
     },
+    "teacher_loss": {
+        "type": "KLDivLoss",
+        "args": {
+            "reduction": "batchmean"
+        }
+    },
     "metrics": ["au_fa_fr"],
     "lr_scheduler": null,
     "trainer": {
-        "epochs": 100,
+        "dist_coef": 0.999,
+        "temperature": 5,
+        "epochs": 70,
         "save_dir": "saved/",
         "save_period": 5,
         "verbosity": 2,

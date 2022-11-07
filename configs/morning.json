@@ -1,16 +1,16 @@
 {
-    "name": "baseline",
+    "name": "morning",
     "n_gpu": 1,
     "arch": {
         "type": "CRNN",
         "args": {
-            "cnn_out_channels": 8,
+            "cnn_out_channels": 4,
             "kernel_size": [5, 20],
             "stride": [2, 8],
             "n_mels": 40,
-            "gru_num_layers": 2,
+            "gru_num_layers": 1,
             "bidirectional": false,
-            "hidden_size": 32,
+            "hidden_size": 16,
             "num_classes": 2
         }
     },
@@ -26,7 +26,7 @@
             "hidden_size": 32,
             "num_classes": 2
         },
-        "checkpoint": "saved/models/baseline/1103_213350/checkpoint-epoch10.pth"
+        "checkpoint": "saved/models/baseline/1105_200812/checkpoint-epoch100.pth"
     },
     "train_dataset": {
         "type": "SpeechCommandDataset",
@@ -69,14 +69,16 @@
     },
     "teacher_loss": {
         "type": "KLDivLoss",
-        "args": {}
+        "args": {
+            "reduction": "batchmean"
+        }
     },
     "metrics": ["au_fa_fr"],
     "lr_scheduler": null,
     "trainer": {
-        "dist_coef": 0.95,
-        "temperature": 10,
-        "epochs": 20,
+        "dist_coef": 0.999,
+        "temperature": 5,
+        "epochs": 50,
         "save_dir": "saved/",
         "save_period": 5,
         "verbosity": 2,

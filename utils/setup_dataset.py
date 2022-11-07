@@ -7,10 +7,10 @@ SEED = 123
 torch.manual_seed(SEED)
 path2dir = pathlib.Path('speech_commands')
 
-all_keywords = [
+all_keywords = sorted([
     p.stem for p in path2dir.glob('*')
     if p.is_dir() and not p.stem.startswith('_')
-]
+])
 
 triplets = []
 for keyword in all_keywords:
